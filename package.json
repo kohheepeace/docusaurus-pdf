@@ -1,0 +1,32 @@
+{
+  "name": "docusaurus-pdf",
+  "version": "0.1.0",
+  "description": "Generate pdf from docusaurus document",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "docusaurus-pdf": "bin/index.js"
+  },
+  "keywords": [
+    "docusaurus"
+  ],
+  "author": "kohheepeace",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/puppeteer": "^2.0.1"
+  },
+  "dependencies": {
+    "chalk": "^3.0.0",
+    "commander": "^4.1.1",
+    "hummus": "^1.0.108",
+    "memory-streams": "^0.1.3",
+    "puppeteer": "^2.1.1"
+  },
+  "files": [
+    "lib/**/*"
+  ]
+}
