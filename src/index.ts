@@ -61,9 +61,7 @@ export async function generatePdf(
 
     generatedPdfBuffers.push(pdfBuffer);
 
-    console.log();
     console.log(chalk.green("Success"));
-    console.log();
   }
   await browser.close();
 
