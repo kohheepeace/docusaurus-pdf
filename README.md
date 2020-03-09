@@ -1,6 +1,10 @@
 ## Introduction
 This is a PDF generator from docusaurus document.
 
+## Demo
+This is generated PDF of official docusaurus website:
+https://drive.google.com/file/d/19P3qSwLLUHYigrxH3QXIMXmRpTFi4pKB/view
+
 ## Usage
 ### 1. Start your docusaurus project
 ```sh
