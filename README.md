@@ -14,7 +14,7 @@ npx docusaurus-pdf <initialDocsUrl> [filename]
 
 For example
 ```sh
-npx docusaurus-pdf http://localhost:3001/docs/doc1 hoge.pdf
+npx docusaurus-pdf http://localhost:3000/docs/doc1 hoge.pdf
 ```
 
 *NOTE!
@@ -31,6 +31,8 @@ npx docusaurus-pdf http://localhost:3001/docs/doc1 hoge.pdf
 ```
 
 ## NOTE!
-If this plugin cannot find next page link, PDF generation will stop.
+1. If this plugin cannot find next page link, PDF generation will stop.
 
 ![note](https://www.awesomescreenshot.com/upload//1017708/c590bbd9-04a0-4637-7bd3-6b5ba1a4258e.png)
+
+2. Dark theme PDF cannot be generated correctly now.
