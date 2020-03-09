@@ -23,15 +23,17 @@ let generatedPdfBuffers: Array<Buffer> = [];
 
 export async function generatePdf(
   initialDocsUrl: string,
-  filename = "docusaurus.pdf"
+  filename = "docusaurus.pdf",
+  isDark: boolean
 ): Promise<void> {
   const browser = await puppeteer.launch();
   let page = await browser.newPage();
 
   const url = new URL(initialDocsUrl);
   const origin = url.origin;
-
   let nextPageUrl = initialDocsUrl;
+
+  const theme = isDark ? 'dark' : null;
 
   while (nextPageUrl) {
     console.log();
@@ -48,16 +50,31 @@ export async function generatePdf(
       nextPageUrl = "";
     }
   
-  
-    let html = await page.$eval('article', (element) => {
+    let article = await page.$eval('article', (element) => {
       return element.outerHTML;
     });
-  
+
+    // let height = await page.evaluate(() => document.documentElement.offsetHeight);
+    // await page.pdf({path: 'my.pdf', height: height + 'px'});
+
     
+    // const html = `<html data-theme=${theme}><div style="padding: 20px 35px; height: 100%;">${article}</div></html>`
+    const html = `<html data-theme=${theme}><body><div style="padding: 20px 35px; background: red; height: 90vh; width: 100%; background: #F7F7F7; -webkit-print-color-adjust: exact;">${article}</div></body></html>`
+    // const html = `<div style="padding: 20px 35px; background: red;">${article}</div>`
+  
+    console.log('html前だよ', html);
     await page.setContent(html);
     await page.addStyleTag({url: `${origin}/styles.css`});
     await page.addScriptTag({url: `${origin}/styles.js`});
-    const pdfBuffer = await page.pdf({path: "", format: 'A4', printBackground: true, margin : {top: 25, right: 35, left: 35, bottom: 25}});
+
+    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
+
+    let htmlAfter = await page.$eval('html', (element) => {
+      return element.outerHTML;
+    });
+    console.log('htmlあとだよ', htmlAfter);
+
+    const pdfBuffer = await page.pdf({format: 'A4', printBackground: true});
 
     generatedPdfBuffers.push(pdfBuffer);
 

@@ -8,18 +8,25 @@ yarn start
 ```
    
 ### 2. Open new terminal windows
+Run pdf generate command.
 ```sh
-npx docusaurus-pdf <initialDocsUrl> [filename]
+npx docusaurus-pdf <initialDocsUrl> [filename] [options]
 ```
 
 For example
 ```sh
-npx docusaurus-pdf http://localhost:3001/docs/doc1 hoge.pdf
+npx docusaurus-pdf http://localhost:3000/docs/doc1
 ```
 
-*NOTE!
-- `initialDocsUrl` is required
-- `filename` is optional.(default is `docusaurus.pdf`)
+Or full option example is...
+```sh
+npx docusaurus-pdf http://localhost:3000/docs/doc1 hoge.pdf --dark
+```
+
+*NOTE about options
+- `initialDocsUrl` is required.
+- `filename` is output filename. (optional. default is `docusaurus.pdf`).
+- `--dark` is optional. (Generates dark mode PDF).
 
 ## Link of PDF
 1. Move generated pdf file to `static/img` folder.
