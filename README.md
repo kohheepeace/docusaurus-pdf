@@ -14,7 +14,7 @@ npx docusaurus-pdf <initialDocsUrl> [filename]
 
 For example
 ```sh
-npx docusaurus-pdf http://localhost:3001/docs/doc1 hoge.pdf
+npx docusaurus-pdf http://localhost:3000/docs/doc1 hoge.pdf
 ```
 
 *NOTE!
