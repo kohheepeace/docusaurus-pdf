@@ -1,6 +1,10 @@
 ## Introduction
 This is a PDF generator from docusaurus document.
 
+## *Note
+- This plugin is not intended to be used during build process.
+ 
+
 ## Demo
 This is generated PDF of official docusaurus website:
 https://drive.google.com/file/d/19P3qSwLLUHYigrxH3QXIMXmRpTFi4pKB/view
