@@ -18,12 +18,18 @@ const mergePdfBuffers = (pdfBuffers: Array<Buffer>) => {
   return outStream.toBuffer();
 };
 
+const safeUrlAppend = (origin: String, path: String, file: String) => {
+  return origin + (path.length > 0 ? '/' : '') + 
+    path.substring(path.startsWith('/') ? 1 : 0, path.length - (path.endsWith('/') ? 1 : 0)) + 
+    '/' + file;
+}
 
 let generatedPdfBuffers: Array<Buffer> = [];
 
 export async function generatePdf(
   initialDocsUrl: string,
-  filename = "docusaurus.pdf"
+  filename = "docusaurus.pdf",
+  baseUrl = ''
 ): Promise<void> {
   const browser = await puppeteer.launch();
   let page = await browser.newPage();
@@ -55,8 +61,8 @@ export async function generatePdf(
   
     
     await page.setContent(html);
-    await page.addStyleTag({url: `${origin}/styles.css`});
-    await page.addScriptTag({url: `${origin}/styles.js`});
+    await page.addStyleTag({url: safeUrlAppend(origin, baseUrl,'styles.css')});
+    await page.addScriptTag({url: safeUrlAppend(origin, baseUrl, 'styles.js')});
     const pdfBuffer = await page.pdf({path: "", format: 'A4', printBackground: true, margin : {top: 25, right: 35, left: 35, bottom: 25}});
 
     generatedPdfBuffers.push(pdfBuffer);

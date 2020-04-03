@@ -7,11 +7,11 @@ const { generatePdf } = require('../lib');
 program
   .version(require('../package.json').version)
   .name('docusaurus-pdf')
-  .usage('<initialDocsUrl> [filename]')
+  .usage('<initialDocsUrl> [filename] [baseUrl]')
   .description('Generate PDF from initial docs url')
-  .arguments('<initialDocsUrl> [filename]')
-  .action((initialDocsUrl, filename) => {
-    generatePdf(initialDocsUrl, filename)
+  .arguments('<initialDocsUrl> [filename] [baseUrl]')
+  .action((initialDocsUrl, filename, baseUrl) => {
+    generatePdf(initialDocsUrl, filename, baseUrl)
       .then((res) => {
         console.log(chalk.green('Finish generating PDF!'));
         process.exit(0);
