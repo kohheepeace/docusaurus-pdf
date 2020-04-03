@@ -17,17 +17,20 @@ yarn start
    
 ### 2. Open new terminal windows
 ```sh
-npx docusaurus-pdf <initialDocsUrl> [filename]
+npx docusaurus-pdf <initialDocsUrl> [filename] [baseUrl]
 ```
 
 For example
 ```sh
-npx docusaurus-pdf http://localhost:3000/docs/doc1 hoge.pdf
+npx docusaurus-pdf http://localhost:3000/myurl/docs/doc1 hoge.pdf myurl
 ```
 
 *NOTE!
-- `initialDocsUrl` is required
-- `filename` is optional.(default is `docusaurus.pdf`)
+- `initialDocsUrl` is required.
+- `filename` is optional (default is `docusaurus.pdf`).
+- `baseUrl` is the baseUrl setting from docusaurus.config.js. 
+It is optional (default is empty string).
+You must specify a filename to use a custom baseUrl.
 
 ## Link of PDF
 1. Move generated pdf file to `static/img` folder.
