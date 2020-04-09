@@ -139,13 +139,13 @@ export async function generatePdf(
 export async function generatePdfFromBuildSrources(
   buildDirPath: string,
   firstDocPath: string,
-  basePath: string,
+  baseUrl: string,
   filename: string = "docusaurus.pdf"
 ): Promise<void> {
   let app = express();
-  app.use(basePath, express.static(buildDirPath));
+  app.use(baseUrl, express.static(buildDirPath));
   
-  basePath = getPathSegment(basePath, false);
+  baseUrl = getPathSegment(baseUrl, false);
   firstDocPath = getPathSegment(firstDocPath);
 
   let httpServer = await app.listen();
@@ -155,6 +155,6 @@ export async function generatePdfFromBuildSrources(
     throw new Error("Something went wrong spinning up the express webserver.");
   }
 
-  await generatePdf(`http://127.0.0.1:${address.port}${basePath}${firstDocPath}`, filename)
+  await generatePdf(`http://127.0.0.1:${address.port}${baseUrl}${firstDocPath}`, filename)
     .then(() => httpServer.close());
 }
