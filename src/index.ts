@@ -57,10 +57,26 @@ const getFirstCapturingGroup = (regExp: RegExp, text: string) => {
 }
 
 const isAddressInfo = (arg: any): arg is AddressInfo => {
-  return arg 
-    && arg.address && typeof(arg.address) == 'string'
-    && arg.family && typeof(arg.family) == 'string'
-    && arg.port && typeof(arg.port) == 'number';
+  return arg
+    && arg.address && typeof (arg.address) == 'string'
+    && arg.family && typeof (arg.family) == 'string'
+    && arg.port && typeof (arg.port) == 'number';
+}
+
+const getPathSegment = (path: string, slashIfEmpty: boolean = true, trailingSlashIfNotEmpty: boolean = false) => {
+  if (path) {
+    if (!path.trim().startsWith('/')) {
+      path = '/' + path.trim();
+    }
+    if (path.trim().endsWith('/') && !trailingSlashIfNotEmpty) {
+      path = path.trim().substring(0, path.trim().length - 1);
+    }
+    return path;
+  } else if (!path && slashIfEmpty) {
+    return '/';
+  } else {
+    return '';
+  }
 }
 
 export async function generatePdf(
@@ -122,17 +138,15 @@ export async function generatePdf(
 
 export async function generatePdfFromBuildSrources(
   buildDirPath: string,
-  basePath: string, // add another prop for firstFileName
-  filename = "docusaurus.pdf"
+  firstDocPath: string,
+  basePath: string,
+  filename: string = "docusaurus.pdf"
 ): Promise<void> {
-  if (basePath && !basePath.startsWith('/')) {
-    basePath = '/' + basePath;
-  } else if (!basePath) {
-    basePath = '/'
-  }
-
   let app = express();
   app.use(basePath, express.static(buildDirPath));
+  
+  basePath = getPathSegment(basePath, false);
+  firstDocPath = getPathSegment(firstDocPath);
 
   let httpServer = await app.listen();
   let address = httpServer.address();
@@ -140,7 +154,7 @@ export async function generatePdfFromBuildSrources(
     httpServer.close();
     throw new Error("Something went wrong spinning up the express webserver.");
   }
-  
-  await generatePdf(`http://127.0.0.1:${address.port}${basePath}`, filename)
+
+  await generatePdf(`http://127.0.0.1:${address.port}${basePath}${firstDocPath}`, filename)
     .then(() => httpServer.close());
 }

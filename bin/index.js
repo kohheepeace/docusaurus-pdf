@@ -23,11 +23,11 @@ program
   });
 
 program
-  .command('from-build <path> [uriBasePath]')
+  .command('from-build <dirPath> <uriFirstDocPage> [uriBasePath]')
   .description('Generate PDF from a docusaurus build artifact')
   .option('-o, --output-file [name]', 'Specify your file name. Default is docusaurus.pdf')
-  .action((path, uriBasePath, options) => {
-    generatePdfFromBuildSrources(path, uriBasePath, options.outputFile)
+  .action((dirPath, uriFirstDocPage, uriBasePath, options) => {
+    generatePdfFromBuildSrources(dirPath, uriFirstDocPage, uriBasePath, options.outputFile)
       .then((res) => {
         console.log(chalk.green('Finish generating PDF!'));
         process.exit(0);
