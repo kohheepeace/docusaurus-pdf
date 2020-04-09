@@ -1,6 +1,6 @@
 {
   "name": "docusaurus-pdf",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "description": "Generate pdf from docusaurus document",
   "main": "lib/index.js",
   "scripts": {
@@ -17,7 +17,8 @@
   "author": "kohheepeace",
   "license": "MIT",
   "devDependencies": {
-    "@types/puppeteer": "^2.0.1"
+    "@types/puppeteer": "^2.0.1",
+    "typescript": "^3.8.3"
   },
   "dependencies": {
     "chalk": "^3.0.0",

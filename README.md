@@ -10,27 +10,18 @@ This is generated PDF of official docusaurus website:
 https://drive.google.com/file/d/19P3qSwLLUHYigrxH3QXIMXmRpTFi4pKB/view
 
 ## Usage
-### 1. Start your docusaurus project
 ```sh
-yarn start
-```
-   
-### 2. Open new terminal windows
-```sh
-npx docusaurus-pdf <initialDocsUrl> [filename] [baseUrl]
+npx docusaurus-pdf <initialDocsUrl> [filename]
 ```
 
 For example
 ```sh
-npx docusaurus-pdf http://localhost:3000/myurl/docs/doc1 hoge.pdf myurl
+npx docusaurus-pdf http://localhost:3000/myBaseUrl/docs/doc1 hoge.pdf
 ```
 
 *NOTE!
-- `initialDocsUrl` is required.
+- `initialDocsUrl` is required. You can spin up your dev-webserver of docusaurus with `yarn start` or use an already hosted page.
 - `filename` is optional (default is `docusaurus.pdf`).
-- `baseUrl` is the baseUrl setting from docusaurus.config.js. 
-It is optional (default is empty string).
-You must specify a filename to use a custom baseUrl.
 
 ## Link of PDF
 1. Move generated pdf file to `static/img` folder.
