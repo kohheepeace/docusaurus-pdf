@@ -2,7 +2,7 @@
 
 const chalk = require('chalk');
 const program = require('commander');
-const { generatePdf } = require('../lib');
+const { generatePdf, generatePdfFromBuildSrources } = require('../lib');
 
 program
   .version(require('../package.json').version)
@@ -12,6 +12,22 @@ program
   .arguments('<initialDocsUrl> [filename]')
   .action((initialDocsUrl, filename) => {
     generatePdf(initialDocsUrl, filename)
+      .then((res) => {
+        console.log(chalk.green('Finish generating PDF!'));
+        process.exit(0);
+      })
+      .catch(err => {
+        console.error(chalk.red(err.stack));
+        process.exit(1)
+      });
+  });
+
+program
+  .command('from-build <path> [uriBasePath]')
+  .description('Generate PDF from a docusaurus build artifact')
+  .option('-o, --output-file [name]', 'Specify your file name. Default is docusaurus.pdf')
+  .action((path, uriBasePath, options) => {
+    generatePdfFromBuildSrources(path, uriBasePath, options.outputFile)
       .then((res) => {
         console.log(chalk.green('Finish generating PDF!'));
         process.exit(0);

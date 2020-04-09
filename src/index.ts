@@ -1,9 +1,12 @@
 import chalk = require('chalk');
 import puppeteer = require('puppeteer');
+import express = require('express');
+import { AddressInfo } from 'net';
 
 const { PDFRStreamForBuffer, createWriterToModify, PDFStreamForResponse } = require('hummus');
 const { WritableStream } = require('memory-streams');
 const fs = require('fs');
+let generatedPdfBuffers: Array<Buffer> = [];
 
 const mergePdfBuffers = (pdfBuffers: Array<Buffer>) => {
   const outStream = new WritableStream();
@@ -53,7 +56,12 @@ const getFirstCapturingGroup = (regExp: RegExp, text: string) => {
   }
 }
 
-let generatedPdfBuffers: Array<Buffer> = [];
+const isAddressInfo = (arg: any): arg is AddressInfo => {
+  return arg 
+    && arg.address && typeof(arg.address) == 'string'
+    && arg.family && typeof(arg.family) == 'string'
+    && arg.port && typeof(arg.port) == 'number';
+}
 
 export async function generatePdf(
   initialDocsUrl: string,
@@ -110,4 +118,29 @@ export async function generatePdf(
 
   const mergedPdfBuffer = mergePdfBuffers(generatedPdfBuffers);
   fs.writeFileSync(`${filename}`, mergedPdfBuffer);
+}
+
+export async function generatePdfFromBuildSrources(
+  buildDirPath: string,
+  basePath: string, // add another prop for firstFileName
+  filename = "docusaurus.pdf"
+): Promise<void> {
+  if (basePath && !basePath.startsWith('/')) {
+    basePath = '/' + basePath;
+  } else if (!basePath) {
+    basePath = '/'
+  }
+
+  let app = express();
+  app.use(basePath, express.static(buildDirPath));
+
+  let httpServer = await app.listen();
+  let address = httpServer.address();
+  if (!address || !isAddressInfo(address)) {
+    httpServer.close();
+    throw new Error("Something went wrong spinning up the express webserver.");
+  }
+  
+  await generatePdf(`http://127.0.0.1:${address.port}${basePath}`, filename)
+    .then(() => httpServer.close());
 }
