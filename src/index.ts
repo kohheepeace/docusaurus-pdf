@@ -78,8 +78,9 @@ export async function generatePdf(
     await page.goto(`${nextPageUrl}`, { waitUntil: 'networkidle2' })
       .then((resp) => resp?.text())
       .then((html) => {
-        stylePath = getStylesheetPathFromHTML(html!, origin);
-        scriptPath = getScriptPathFromHTML(html!, origin);
+        if (!html) throw new Error(`Page could not be loaded! Did not get any HTML for ${nextPageUrl}`)
+        stylePath = getStylesheetPathFromHTML(html, origin);
+        scriptPath = getScriptPathFromHTML(html, origin);
       });
 
     try {
