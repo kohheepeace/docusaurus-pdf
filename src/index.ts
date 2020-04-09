@@ -63,15 +63,9 @@ const isAddressInfo = (arg: any): arg is AddressInfo => {
     && arg.port && typeof (arg.port) == 'number';
 }
 
-const getPathSegment = (path: string, slashIfEmpty: boolean = true, trailingSlashIfNotEmpty: boolean = false) => {
-  if (path) {
-    if (!path.trim().startsWith('/')) {
-      path = '/' + path.trim();
-    }
-    if (path.trim().endsWith('/') && !trailingSlashIfNotEmpty) {
-      path = path.trim().substring(0, path.trim().length - 1);
-    }
-    return path;
+const getPathSegment = (path: string, slashIfEmpty: boolean = true) => {
+  if (path && !path.trim().startsWith('/')) {
+    return '/' + path.trim();
   } else if (!path && slashIfEmpty) {
     return '/';
   } else {
@@ -143,8 +137,7 @@ export async function generatePdfFromBuildSrources(
   filename: string = "docusaurus.pdf"
 ): Promise<void> {
   let app = express();
-  app.use(baseUrl, express.static(buildDirPath));
-  
+
   baseUrl = getPathSegment(baseUrl, false);
   firstDocPath = getPathSegment(firstDocPath);
 
@@ -154,6 +147,8 @@ export async function generatePdfFromBuildSrources(
     httpServer.close();
     throw new Error("Something went wrong spinning up the express webserver.");
   }
+
+  app.use(baseUrl, express.static(buildDirPath));
 
   await generatePdf(`http://127.0.0.1:${address.port}${baseUrl}${firstDocPath}`, filename)
     .then(() => httpServer.close());
