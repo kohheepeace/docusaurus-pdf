@@ -1,6 +1,6 @@
 {
   "name": "docusaurus-pdf",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "description": "Generate pdf from docusaurus document",
   "main": "lib/index.js",
   "scripts": {
