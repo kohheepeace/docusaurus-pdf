@@ -57,8 +57,7 @@ let generatedPdfBuffers: Array<Buffer> = [];
 
 export async function generatePdf(
   initialDocsUrl: string,
-  filename = "docusaurus.pdf",
-  baseUrl = ''
+  filename = "docusaurus.pdf"
 ): Promise<void> {
   const browser = await puppeteer.launch();
   let page = await browser.newPage();
