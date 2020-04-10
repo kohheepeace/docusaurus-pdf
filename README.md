@@ -37,7 +37,7 @@ npx docusaurus-pdf from-build build/ docs/doc1 /myBaseUrl/
 #### Parameters
 - Mandatory: `dirPath` which points to the build directory created with `docusaurus build`.
 - Mandatory: `firstDocPagePath` is the URL path segment (without `baseUrl`) of your first docs page you whish to have included in the PDF.
-- Optional: If you have a `baseUrl` configured in your `docusaurus.config.ts` then pass this value as `baseUrl`.
+- Optional: If you have a `baseUrl` configured in your `docusaurus.config.js` then pass this value as `baseUrl`.
 - Note: There is a optional parameter to set a custom filename. You can see further details using `npx docusaurus-pdf from-build --help`.
 
 ## Link of PDF

@@ -130,7 +130,7 @@ export async function generatePdf(
   fs.writeFileSync(`${filename}`, mergedPdfBuffer);
 }
 
-export async function generatePdfFromBuildSrources(
+export async function generatePdfFromBuildSources(
   buildDirPath: string,
   firstDocPath: string,
   baseUrl: string,
