@@ -2,7 +2,7 @@
 This is a PDF generator from docusaurus document.
 
 ## *Note
-- This plugin is not intended to be used during build process.
+- This plugin is not intended to be used during build process. But you can run it as a post build script. See the instructions below.
  
 
 ## Demo
@@ -10,6 +10,7 @@ This is generated PDF of official docusaurus website:
 https://drive.google.com/file/d/19P3qSwLLUHYigrxH3QXIMXmRpTFi4pKB/view
 
 ## Usage
+### Use with already hosted docusaurus instance (locally or somewhere in the net)
 ```sh
 npx docusaurus-pdf <initialDocsUrl> [filename]
 ```
@@ -22,6 +23,22 @@ npx docusaurus-pdf http://localhost:3000/myBaseUrl/docs/doc1 hoge.pdf
 *NOTE!
 - `initialDocsUrl` is required. You can spin up your dev-webserver of docusaurus with `yarn start` or use an already hosted page.
 - `filename` is optional (default is `docusaurus.pdf`).
+
+### Use with the build artifact of `docusaurus build`
+```sh
+npx docusaurus-pdf from-build [options] <dirPath> <firstDocPagePath> [baseUrl]
+```
+
+For example
+```sh
+npx docusaurus-pdf from-build build/ docs/doc1 /myBaseUrl/
+```
+
+#### Parameters
+- Mandatory: `dirPath` which points to the build directory created with `docusaurus build`.
+- Mandatory: `firstDocPagePath` is the URL path segment (without `baseUrl`) of your first docs page you whish to have included in the PDF.
+- Optional: If you have a `baseUrl` configured in your `docusaurus.config.js` then pass this value as `baseUrl`.
+- Note: There is a optional parameter to set a custom filename. You can see further details using `npx docusaurus-pdf from-build --help`.
 
 ## Link of PDF
 1. Move generated pdf file to `static/img` folder.

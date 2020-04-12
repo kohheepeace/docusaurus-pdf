@@ -1,9 +1,12 @@
 import chalk = require('chalk');
 import puppeteer = require('puppeteer');
+import express = require('express');
+import { AddressInfo } from 'net';
 
 const { PDFRStreamForBuffer, createWriterToModify, PDFStreamForResponse } = require('hummus');
 const { WritableStream } = require('memory-streams');
 const fs = require('fs');
+let generatedPdfBuffers: Array<Buffer> = [];
 
 const mergePdfBuffers = (pdfBuffers: Array<Buffer>) => {
   const outStream = new WritableStream();
@@ -53,7 +56,22 @@ const getFirstCapturingGroup = (regExp: RegExp, text: string) => {
   }
 }
 
-let generatedPdfBuffers: Array<Buffer> = [];
+const isAddressInfo = (arg: any): arg is AddressInfo => {
+  return arg
+    && arg.address && typeof (arg.address) == 'string'
+    && arg.family && typeof (arg.family) == 'string'
+    && arg.port && typeof (arg.port) == 'number';
+}
+
+const getPathSegment = (path: string, slashIfEmpty: boolean = true) => {
+  if (path && !path.trim().startsWith('/')) {
+    return '/' + path.trim();
+  } else if (!path && slashIfEmpty) {
+    return '/';
+  } else {
+    return '';
+  }
+}
 
 export async function generatePdf(
   initialDocsUrl: string,
@@ -110,4 +128,28 @@ export async function generatePdf(
 
   const mergedPdfBuffer = mergePdfBuffers(generatedPdfBuffers);
   fs.writeFileSync(`${filename}`, mergedPdfBuffer);
+}
+
+export async function generatePdfFromBuildSources(
+  buildDirPath: string,
+  firstDocPath: string,
+  baseUrl: string,
+  filename: string = "docusaurus.pdf"
+): Promise<void> {
+  let app = express();
+
+  baseUrl = getPathSegment(baseUrl, false);
+  firstDocPath = getPathSegment(firstDocPath);
+
+  let httpServer = await app.listen();
+  let address = httpServer.address();
+  if (!address || !isAddressInfo(address)) {
+    httpServer.close();
+    throw new Error("Something went wrong spinning up the express webserver.");
+  }
+
+  app.use(baseUrl, express.static(buildDirPath));
+
+  await generatePdf(`http://127.0.0.1:${address.port}${baseUrl}${firstDocPath}`, filename)
+    .then(() => httpServer.close());
 }
