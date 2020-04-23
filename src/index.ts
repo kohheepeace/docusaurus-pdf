@@ -77,7 +77,7 @@ export async function generatePdf(
   initialDocsUrl: string,
   filename = "docusaurus.pdf"
 ): Promise<void> {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
   let page = await browser.newPage();
 
   const url = new URL(initialDocsUrl);
