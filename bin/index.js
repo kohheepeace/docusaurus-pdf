@@ -26,8 +26,10 @@ program
   .command('from-build <dirPath> <firstDocPagePath> [baseUrl]')
   .description('Generate PDF from a docusaurus build artifact')
   .option('-o, --output-file [name]', 'Specify your file name. Default is docusaurus.pdf')
+  .option('--no-sandbox', 'Start puppeteer with --no-sandbox flag')
   .action((dirPath, firstDocPagePath, baseUrl, options) => {
-    generatePdfFromBuildSources(dirPath, firstDocPagePath, baseUrl, options.outputFile)
+    const puppeteerArgs = options.sandbox ? [] : ['--no-sandbox'];
+    generatePdfFromBuildSources(dirPath, firstDocPagePath, baseUrl, options.outputFile, puppeteerArgs)
       .then((res) => {
         console.log(chalk.green('Finish generating PDF!'));
         process.exit(0);

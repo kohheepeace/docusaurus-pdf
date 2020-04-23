@@ -75,9 +75,10 @@ const getPathSegment = (path: string, slashIfEmpty: boolean = true) => {
 
 export async function generatePdf(
   initialDocsUrl: string,
-  filename = "docusaurus.pdf"
+  filename = "docusaurus.pdf",
+  puppeteerArgs: Array<string>
 ): Promise<void> {
-  const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
+  const browser = await puppeteer.launch({ args: puppeteerArgs });
   let page = await browser.newPage();
 
   const url = new URL(initialDocsUrl);
@@ -134,7 +135,8 @@ export async function generatePdfFromBuildSources(
   buildDirPath: string,
   firstDocPath: string,
   baseUrl: string,
-  filename: string = "docusaurus.pdf"
+  filename: string = "docusaurus.pdf",
+  puppeteerArgs: Array<string>
 ): Promise<void> {
   let app = express();
 
@@ -150,6 +152,6 @@ export async function generatePdfFromBuildSources(
 
   app.use(baseUrl, express.static(buildDirPath));
 
-  await generatePdf(`http://127.0.0.1:${address.port}${baseUrl}${firstDocPath}`, filename)
+  await generatePdf(`http://127.0.0.1:${address.port}${baseUrl}${firstDocPath}`, filename, puppeteerArgs)
     .then(() => httpServer.close());
 }
