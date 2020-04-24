@@ -13,7 +13,7 @@ RUN apt-get update \
 ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
 RUN chmod +x /usr/local/bin/dumb-init
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
 COPY package*.json ./
 RUN npm install
@@ -21,6 +21,6 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-ENTRYPOINT ["dumb-init", "--", "node", "./bin/index.js"]
+ENTRYPOINT ["dumb-init", "--", "node", "/usr/src/app/bin/index.js"]
 
 CMD ["--help"]
