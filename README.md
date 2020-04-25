@@ -40,6 +40,22 @@ npx docusaurus-pdf from-build build/ docs/doc1 /myBaseUrl/
 - Optional: If you have a `baseUrl` configured in your `docusaurus.config.js` then pass this value as `baseUrl`.
 - Note: There is a optional parameter to set a custom filename. You can see further details using `npx docusaurus-pdf from-build --help`.
 
+## Docker usage
+All dependencies needed to create a PDF from your docusaurus site are bundled in our Dockerfile.
+
+### Create PDF from build artifact
+#### Run docusaurus-pdf with prebuild image
+```sh
+docker run --rm -it -v /someDir/my-docusaurus:/workspace maxys/docusaurus-pdf:latest from-build --no-sandbox -o /workspace/build/docs.pdf /workspace/build docs/doc1 myBaseUrl
+```
+
+#### Build Docker image locally
+You can create the image locally without pulling `maxys/docusaurus-pdf:latest` from the Docker Hub with:
+
+```sh
+docker build -t "docusaurus-pdf" .
+```
+
 ## Link of PDF
 1. Move generated pdf file to `static/img` folder.
 2. `<a>` tag with `target="_blank"`
