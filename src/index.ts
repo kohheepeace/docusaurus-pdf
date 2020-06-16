@@ -2,23 +2,23 @@ import chalk = require('chalk');
 import puppeteer = require('puppeteer');
 import express = require('express');
 import { AddressInfo } from 'net';
+import { PDFDocument } from 'pdf-lib';
 
-const { PDFRStreamForBuffer, createWriterToModify, PDFStreamForResponse } = require('hummus');
 const { WritableStream } = require('memory-streams');
 const fs = require('fs');
 let generatedPdfBuffers: Array<Buffer> = [];
 
-const mergePdfBuffers = (pdfBuffers: Array<Buffer>) => {
-  const outStream = new WritableStream();
-  const [firstPdfRStream, ...restPdfRStreams] = pdfBuffers.map(pdfBuffer => new PDFRStreamForBuffer(pdfBuffer));
-  const pdfWriter = createWriterToModify(firstPdfRStream, new PDFStreamForResponse(outStream));
+async function mergePdfBuffers(pdfBuffers: Array<Buffer>) {
+  const outDoc = await PDFDocument.create();
+  for (const pdfBuffer of pdfBuffers) {
+    const docToAdd = await PDFDocument.load(pdfBuffer);
+    const pages = await outDoc.copyPages(docToAdd, docToAdd.getPageIndices());
+    for (const page of pages) {
+      outDoc.addPage(page);
+    }
+  }
 
-  restPdfRStreams.forEach(pdfRStream => pdfWriter.appendPDFPagesFromPDF(pdfRStream));
-
-  pdfWriter.end();
-  outStream.end();
-
-  return outStream.toBuffer();
+  return outDoc.save();
 };
 
 const getURL = (origin: string, filePath: string) => {
@@ -127,7 +127,7 @@ export async function generatePdf(
   }
   await browser.close();
 
-  const mergedPdfBuffer = mergePdfBuffers(generatedPdfBuffers);
+  const mergedPdfBuffer = await mergePdfBuffers(generatedPdfBuffers);
   fs.writeFileSync(`${filename}`, mergedPdfBuffer);
 }
 
