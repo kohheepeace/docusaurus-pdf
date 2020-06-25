@@ -18,14 +18,14 @@ program
       })
       .catch(err => {
         console.error(chalk.red(err.stack));
-        process.exit(1)
+        process.exit(1);
       });
   });
 
 program
   .command('from-build <dirPath> <firstDocPagePath> [baseUrl]')
   .description('Generate PDF from a docusaurus build artifact')
-  .option('-o, --output-file [name]', 'Specify your file name. Default is docusaurus.pdf')
+  .option('-o, --output-file <name>', 'Specify your file name.', 'docusaurus.pdf')
   .option('--no-sandbox', 'Start puppeteer with --no-sandbox flag')
   .action((dirPath, firstDocPagePath, baseUrl, options) => {
     const puppeteerArgs = options.sandbox ? [] : ['--no-sandbox'];
@@ -36,7 +36,7 @@ program
       })
       .catch(err => {
         console.error(chalk.red(err.stack));
-        process.exit(1)
+        process.exit(1);
       });
   });
 

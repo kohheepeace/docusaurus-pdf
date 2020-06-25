@@ -154,9 +154,9 @@ async function loadConfig(siteDir: string,
     for (const [preset, options] of config.presets) {
       if (
         preset === "@docusaurus/preset-classic" &&
-        options.doc?.routeBasePath
+        options.docs?.routeBasePath
       ) {
-        routeBasePaths.push(options.doc.routeBasePath);
+        routeBasePaths.push(options.docs.routeBasePath);
       }
     }
   }
@@ -195,7 +195,7 @@ export async function generatePdfFromBuildSources(
   buildDirPath: string,
   firstDocPath: string,
   baseUrl: string,
-  filename: string = "docusaurus.pdf",
+  filename: string,
   puppeteerArgs: Array<string>
 ): Promise<void> {
   let app = express();
