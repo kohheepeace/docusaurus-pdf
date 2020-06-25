@@ -25,6 +25,7 @@ npx docusaurus-pdf http://localhost:3000/myBaseUrl/docs/doc1 hoge.pdf
 - `filename` is optional (default is `docusaurus.pdf`).
 
 ### Use with the build artifact of `docusaurus build`
+
 ```sh
 npx docusaurus-pdf from-build [options] <dirPath> <firstDocPagePath> [baseUrl]
 ```
@@ -32,6 +33,12 @@ npx docusaurus-pdf from-build [options] <dirPath> <firstDocPagePath> [baseUrl]
 For example
 ```sh
 npx docusaurus-pdf from-build build/ docs/doc1 /myBaseUrl/
+```
+
+You can also try to automatically load the `firstDocPagePath` and `baseUrl` from `docusaurus.config.js`:
+
+```sh
+npx docusaurus-pdf from-build-config
 ```
 
 #### Parameters

@@ -5,6 +5,7 @@ import { AddressInfo } from 'net';
 import { PDFDocument } from 'pdf-lib';
 
 const fs = require('fs');
+const path = require('path');
 let generatedPdfBuffers: Array<Buffer> = [];
 
 async function mergePdfBuffers(pdfBuffers: Array<Buffer>) {
@@ -62,14 +63,17 @@ const isAddressInfo = (arg: any): arg is AddressInfo => {
     && arg.port && typeof (arg.port) == 'number';
 }
 
-const getPathSegment = (path: string, slashIfEmpty: boolean = true) => {
-  if (path && !path.trim().startsWith('/')) {
-    return '/' + path.trim();
-  } else if (!path && slashIfEmpty) {
-    return '/';
-  } else {
-    return '';
+const getPathSegment = (path: string, endSlash: boolean = true) => {
+  path = path?.trim() ?? "";
+  if (!path.startsWith('/')) {
+    path = "/" + path;
   }
+  if (endSlash && !path.endsWith('/')) {
+    path = path + "/";
+  } else if (!endSlash && path.endsWith('/')) {
+    path = path.substring(0, path.length - 1); // remove "/"
+  }
+  return path;
 }
 
 export async function generatePdf(
@@ -128,6 +132,63 @@ export async function generatePdf(
 
   const mergedPdfBuffer = await mergePdfBuffers(generatedPdfBuffers);
   fs.writeFileSync(`${filename}`, mergedPdfBuffer);
+}
+
+interface LoadedConfig {
+  firstDocPath: string,
+  baseUrl: string,
+};
+
+async function loadConfig(siteDir: string,
+): Promise<LoadedConfig> {
+  const docusaurusConfigPath = path.join(siteDir, "docusaurus.config.js");
+  try {
+    await fs.promises.access(docusaurusConfigPath, fs.constants.R_OK);
+  } catch (error) {
+    throw new Error(`Could not read ${docusaurusConfigPath}`);
+  }
+
+  const config = await import(path.resolve(docusaurusConfigPath));
+  const routeBasePaths = [];
+  if (config.presets) {
+    for (const [preset, options] of config.presets) {
+      if (
+        preset === "@docusaurus/preset-classic" &&
+        options.doc?.routeBasePath
+      ) {
+        routeBasePaths.push(options.doc.routeBasePath);
+      }
+    }
+  }
+  if (config.plugins) {
+    for (const [plugin, options] of config.plugins) {
+      if (
+        plugin === "@docusaurus/plugin-content-docs" &&
+        options.routeBasePath
+      ) {
+        routeBasePaths.push(options.routeBasePath);
+      }
+    }
+  }
+  let firstDocPath = "docs"; // default from @docusaurus/plugin-content-docs
+  if (routeBasePaths.length === 1) {
+    firstDocPath = routeBasePaths[0];
+  } else if (routeBasePaths.length > 1) {
+    firstDocPath = routeBasePaths[routeBasePaths.length - 1];
+    console.warn(
+      `${chalk.yellow("Warning")}: Found multiple routeBasePath in ${
+        docusaurusConfigPath}. Picking ${firstDocPath}.`
+    );
+  }
+  const baseUrl = config.baseUrl ?? "/";
+  return {firstDocPath, baseUrl};
+}
+
+export async function generatePdfFromBuildWithConfig(
+  siteDir: string, buildDirPath: string, filename: string, puppeteerArgs: Array<string>,
+): Promise<void> {
+  const {firstDocPath, baseUrl} = await loadConfig(siteDir);
+  await generatePdfFromBuildSources(buildDirPath, firstDocPath, baseUrl, filename, puppeteerArgs);
 }
 
 export async function generatePdfFromBuildSources(
