@@ -140,6 +140,18 @@ export async function generatePdfFromBuildSources(
 ): Promise<void> {
   let app = express();
 
+  let buildDirStat;
+  try {
+    buildDirStat = await fs.promises.stat(buildDirPath);
+  } catch (error) {
+    throw new Error(
+      `Could not find docusaurus build directory at "${buildDirPath}". ` +
+      'Have you run "docusaurus build"?');
+  }
+  if (!buildDirStat.isDirectory()) {
+    throw new Error(`${buildDirPath} is not a docusaurus build directory.`);
+  }
+
   baseUrl = getPathSegment(baseUrl, false);
   firstDocPath = getPathSegment(firstDocPath);
 
@@ -152,6 +164,9 @@ export async function generatePdfFromBuildSources(
 
   app.use(baseUrl, express.static(buildDirPath));
 
-  await generatePdf(`http://127.0.0.1:${address.port}${baseUrl}${firstDocPath}`, filename, puppeteerArgs)
-    .then(() => httpServer.close());
+  try {
+    await generatePdf(`http://127.0.0.1:${address.port}${baseUrl}${firstDocPath}`, filename, puppeteerArgs)
+  } finally {
+    httpServer.close();
+  }
 }
