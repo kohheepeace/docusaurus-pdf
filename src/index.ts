@@ -4,7 +4,6 @@ import express = require('express');
 import { AddressInfo } from 'net';
 import { PDFDocument } from 'pdf-lib';
 
-const { WritableStream } = require('memory-streams');
 const fs = require('fs');
 let generatedPdfBuffers: Array<Buffer> = [];
 
