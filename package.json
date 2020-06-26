@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "bin": {
     "docusaurus-pdf": "bin/index.js"
@@ -18,8 +18,16 @@
   "license": "MIT",
   "devDependencies": {
     "@types/express": "^4.17.5",
+    "@types/jest": "^26.0.3",
     "@types/puppeteer": "^2.0.1",
-    "typescript": "^3.8.3"
+    "jest": "^26.1.0",
+    "ts-jest": "^26.1.1",
+    "typescript": "^3.8.3",
+    "@docusaurus/core": "^2.0.0-alpha.58",
+    "@docusaurus/preset-classic": "^2.0.0-alpha.58",
+    "clsx": "^1.1.1",
+    "react": "^16.8.4",
+    "react-dom": "^16.8.4"
   },
   "dependencies": {
     "chalk": "^3.0.0",
