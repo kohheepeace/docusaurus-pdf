@@ -63,7 +63,7 @@ const isAddressInfo = (arg: any): arg is AddressInfo => {
     && arg.port && typeof (arg.port) == 'number';
 }
 
-const getPathSegment = (path: string, endSlash: boolean = true) => {
+export function getPathSegment(path: string, endSlash: boolean = true) {
   path = path?.trim() ?? "";
   if (!path.startsWith('/')) {
     path = "/" + path;
