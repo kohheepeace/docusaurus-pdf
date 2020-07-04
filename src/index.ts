@@ -1,12 +1,13 @@
-import chalk = require('chalk');
-import puppeteer = require('puppeteer');
-import express = require('express');
-import { AddressInfo } from 'net';
-import { PDFDocument } from 'pdf-lib';
+import chalk = require("chalk");
+import puppeteer = require("puppeteer");
+import express = require("express");
+import { AddressInfo } from "net";
+import { PDFDocument } from "pdf-lib";
 
-const fs = require('fs');
-const path = require('path');
-let generatedPdfBuffers: Array<Buffer> = [];
+import * as fs from "fs";
+import * as path from "path";
+
+const generatedPdfBuffers: Array<Buffer> = [];
 
 async function mergePdfBuffers(pdfBuffers: Array<Buffer>) {
   const outDoc = await PDFDocument.create();
@@ -19,58 +20,78 @@ async function mergePdfBuffers(pdfBuffers: Array<Buffer>) {
   }
 
   return outDoc.save();
-};
-
-const getURL = (origin: string, filePath: string) => {
-  return origin + "/" + filePath.substring(filePath.startsWith('/') ? 1 : 0);
 }
 
+const getURL = (origin: string, filePath: string) => {
+  return origin + "/" + filePath.substring(filePath.startsWith("/") ? 1 : 0);
+};
+
 const getStylesheetPathFromHTML = (html: string, origin: string) => {
-  let regExp = /(?:|<link.*){1}href="(.*styles.*?\.css){1}"/g;
+  const regExp = /(?:|<link.*){1}href="(.*styles.*?\.css){1}"/g;
   let filePath = "";
   try {
     filePath = getFirstCapturingGroup(regExp, html);
   } catch {
-    throw new Error("The href attribute of the 'styles*.css' file could not be found!");
+    throw new Error(
+      "The href attribute of the 'styles*.css' file could not be found!"
+    );
   }
   return getURL(origin, filePath);
 };
 
 const getScriptPathFromHTML = (html: string, origin: string) => {
-  let regExp = /(?:|<script.*){1}src="(.*styles.*?\.js){1}"/g;
+  const regExp = /(?:|<script.*){1}src="(.*styles.*?\.js){1}"/g;
   let filePath = "";
   try {
     filePath = getFirstCapturingGroup(regExp, html);
   } catch {
-    throw new Error("The src attribute of the 'styles*.js' file could not be found!");
+    throw new Error(
+      "The src attribute of the 'styles*.js' file could not be found!"
+    );
   }
   return getURL(origin, filePath);
 };
 
 const getFirstCapturingGroup = (regExp: RegExp, text: string) => {
-  let match = regExp.exec(text);
+  const match = regExp.exec(text);
   if (match && match[1]) {
     return match[1];
   } else {
-    throw new ReferenceError("No capture group found in the provided text.")
+    throw new ReferenceError("No capture group found in the provided text.");
   }
+};
+
+function isObject(x: unknown): x is Record<PropertyKey, unknown> {
+  return x !== null && typeof x === "object";
 }
 
-const isAddressInfo = (arg: any): arg is AddressInfo => {
-  return arg
-    && arg.address && typeof (arg.address) == 'string'
-    && arg.family && typeof (arg.family) == 'string'
-    && arg.port && typeof (arg.port) == 'number';
+function hasOwnProperty<
+  X extends Record<PropertyKey, unknown>,
+  Y extends PropertyKey
+>(obj: X, prop: Y): obj is X & Record<Y, unknown> {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-export function getPathSegment(path: string, endSlash: boolean = true) {
+const isAddressInfo = (arg: unknown): arg is AddressInfo => {
+  return (
+    isObject(arg) &&
+    hasOwnProperty(arg, "address") &&
+    typeof arg.address == "string" &&
+    hasOwnProperty(arg, "family") &&
+    typeof arg.family == "string" &&
+    hasOwnProperty(arg, "port") &&
+    typeof arg.port == "number"
+  );
+};
+
+export function getPathSegment(path: string, endSlash = true): string {
   path = path?.trim() ?? "";
-  if (!path.startsWith('/')) {
+  if (!path.startsWith("/")) {
     path = "/" + path;
   }
-  if (endSlash && !path.endsWith('/')) {
+  if (endSlash && !path.endsWith("/")) {
     path = path + "/";
-  } else if (!endSlash && path.endsWith('/')) {
+  } else if (!endSlash && path.endsWith("/")) {
     path = path.substring(0, path.length - 1); // remove "/"
   }
   return path;
@@ -82,13 +103,13 @@ export async function generatePdf(
   puppeteerArgs: Array<string>
 ): Promise<void> {
   const browser = await puppeteer.launch({ args: puppeteerArgs });
-  let page = await browser.newPage();
+  const page = await browser.newPage();
 
   const url = new URL(initialDocsUrl);
   const origin = url.origin;
 
-  let stylePath: string = "";
-  let scriptPath: string = "";
+  let stylePath = "";
+  let scriptPath = "";
 
   let nextPageUrl = initialDocsUrl;
 
@@ -97,32 +118,42 @@ export async function generatePdf(
     console.log(chalk.cyan(`Generating PDF of ${nextPageUrl}`));
     console.log();
 
-    await page.goto(`${nextPageUrl}`, { waitUntil: 'networkidle2' })
+    await page
+      .goto(`${nextPageUrl}`, { waitUntil: "networkidle2" })
       .then((resp) => resp?.text())
       .then((html) => {
-        if (!html) throw new Error(`Page could not be loaded! Did not get any HTML for ${nextPageUrl}`)
+        if (!html)
+          throw new Error(
+            `Page could not be loaded! Did not get any HTML for ${nextPageUrl}`
+          );
         stylePath = getStylesheetPathFromHTML(html, origin);
         scriptPath = getScriptPathFromHTML(html, origin);
       });
 
     try {
-      nextPageUrl = await page.$eval('.pagination-nav__item--next > a', (element) => {
-        return (element as HTMLLinkElement).href;
-      });
+      nextPageUrl = await page.$eval(
+        ".pagination-nav__item--next > a",
+        (element) => {
+          return (element as HTMLLinkElement).href;
+        }
+      );
     } catch (e) {
       nextPageUrl = "";
     }
 
-
-    let html = await page.$eval('article', (element) => {
+    const html = await page.$eval("article", (element) => {
       return element.outerHTML;
     });
-
 
     await page.setContent(html);
     await page.addStyleTag({ url: stylePath });
     await page.addScriptTag({ url: scriptPath });
-    const pdfBuffer = await page.pdf({ path: "", format: 'A4', printBackground: true, margin: { top: 25, right: 35, left: 35, bottom: 25 } });
+    const pdfBuffer = await page.pdf({
+      path: "",
+      format: "A4",
+      printBackground: true,
+      margin: { top: 25, right: 35, left: 35, bottom: 25 },
+    });
 
     generatedPdfBuffers.push(pdfBuffer);
 
@@ -135,12 +166,11 @@ export async function generatePdf(
 }
 
 interface LoadedConfig {
-  firstDocPath: string,
-  baseUrl: string,
-};
+  firstDocPath: string;
+  baseUrl: string;
+}
 
-async function loadConfig(siteDir: string,
-): Promise<LoadedConfig> {
+async function loadConfig(siteDir: string): Promise<LoadedConfig> {
   const docusaurusConfigPath = path.join(siteDir, "docusaurus.config.js");
   try {
     await fs.promises.access(docusaurusConfigPath, fs.constants.R_OK);
@@ -176,19 +206,29 @@ async function loadConfig(siteDir: string,
   } else if (routeBasePaths.length > 1) {
     firstDocPath = routeBasePaths[routeBasePaths.length - 1];
     console.warn(
-      `${chalk.yellow("Warning")}: Found multiple routeBasePath in ${
-        docusaurusConfigPath}. Picking ${firstDocPath}.`
+      `${chalk.yellow(
+        "Warning"
+      )}: Found multiple routeBasePath in ${docusaurusConfigPath}. Picking ${firstDocPath}.`
     );
   }
   const baseUrl = config.baseUrl ?? "/";
-  return {firstDocPath, baseUrl};
+  return { firstDocPath, baseUrl };
 }
 
 export async function generatePdfFromBuildWithConfig(
-  siteDir: string, buildDirPath: string, filename: string, puppeteerArgs: Array<string>,
+  siteDir: string,
+  buildDirPath: string,
+  filename: string,
+  puppeteerArgs: Array<string>
 ): Promise<void> {
-  const {firstDocPath, baseUrl} = await loadConfig(siteDir);
-  await generatePdfFromBuildSources(buildDirPath, firstDocPath, baseUrl, filename, puppeteerArgs);
+  const { firstDocPath, baseUrl } = await loadConfig(siteDir);
+  await generatePdfFromBuildSources(
+    buildDirPath,
+    firstDocPath,
+    baseUrl,
+    filename,
+    puppeteerArgs
+  );
 }
 
 export async function generatePdfFromBuildSources(
@@ -198,7 +238,7 @@ export async function generatePdfFromBuildSources(
   filename: string,
   puppeteerArgs: Array<string>
 ): Promise<void> {
-  let app = express();
+  const app = express();
 
   let buildDirStat;
   try {
@@ -206,7 +246,8 @@ export async function generatePdfFromBuildSources(
   } catch (error) {
     throw new Error(
       `Could not find docusaurus build directory at "${buildDirPath}". ` +
-      'Have you run "docusaurus build"?');
+        'Have you run "docusaurus build"?'
+    );
   }
   if (!buildDirStat.isDirectory()) {
     throw new Error(`${buildDirPath} is not a docusaurus build directory.`);
@@ -215,8 +256,8 @@ export async function generatePdfFromBuildSources(
   baseUrl = getPathSegment(baseUrl, false);
   firstDocPath = getPathSegment(firstDocPath);
 
-  let httpServer = await app.listen();
-  let address = httpServer.address();
+  const httpServer = await app.listen();
+  const address = httpServer.address();
   if (!address || !isAddressInfo(address)) {
     httpServer.close();
     throw new Error("Something went wrong spinning up the express webserver.");
@@ -225,7 +266,11 @@ export async function generatePdfFromBuildSources(
   app.use(baseUrl, express.static(buildDirPath));
 
   try {
-    await generatePdf(`http://127.0.0.1:${address.port}${baseUrl}${firstDocPath}`, filename, puppeteerArgs)
+    await generatePdf(
+      `http://127.0.0.1:${address.port}${baseUrl}${firstDocPath}`,
+      filename,
+      puppeteerArgs
+    );
   } finally {
     httpServer.close();
   }
