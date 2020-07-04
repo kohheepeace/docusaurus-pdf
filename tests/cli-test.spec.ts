@@ -12,6 +12,13 @@ const TEST_SITE_DIR = "./tests/test-website";
 // third-to-last docs path so should be faster
 const DOCUSAURUS_TEST_LINK =
   "https://v2.docusaurus.io/docs/2.0.0-alpha.56/docusaurus.config.js";
+const PUPPETEER_SETTINGS = [
+  "--margin",
+  "2cm 2cm 2cm 2cm",
+  "--format",
+  "A3",
+  "--no-sandbox",
+];
 
 async function runDocusaurusPdf(
   args: Array<string>,
@@ -72,6 +79,30 @@ describe("testing cli", () => {
       ).rejects.toThrow();
       expect(await isFile(outputPath)).toBe(false);
     });
+    test("should use puppeteer settings", async () => {
+      const outputPath = pathJoin(TEST_OUTPUT, "docusaurus-a3.pdf");
+      await runDocusaurusPdf([
+        DOCUSAURUS_TEST_LINK,
+        outputPath,
+        ...PUPPETEER_SETTINGS,
+      ]);
+      expect(await isFile(outputPath)).toBe(true);
+    });
+    test("should fail with invalid margins", async () => {
+      const outputPath = pathJoin(
+        TEST_OUTPUT,
+        "should-fail-invalid-margins.pdf"
+      );
+      await expect(
+        runDocusaurusPdf([
+          DOCUSAURUS_TEST_LINK,
+          outputPath,
+          "--margin",
+          "2cm 2cm 2cm",
+        ])
+      ).rejects.toThrow();
+      expect(await isFile(outputPath)).toBe(false);
+    });
   });
 
   describe("from-build", () => {
@@ -112,6 +143,22 @@ describe("testing cli", () => {
       ]);
       expect(await isFile(outputPath)).toBe(true);
     });
+    test("should use puppeteer settings", async () => {
+      const outputPath = pathJoin(TEST_OUTPUT, "from-build-a3.pdf");
+      const buildDir = pathJoin(TEST_SITE_DIR, "build");
+      const docsPath = "/docs-path";
+      const baseUrl = "/base-url/";
+      await runDocusaurusPdf([
+        "from-build",
+        buildDir,
+        docsPath,
+        baseUrl,
+        "--output-file",
+        outputPath,
+        ...PUPPETEER_SETTINGS,
+      ]);
+      expect(await isFile(outputPath)).toBe(true);
+    });
   });
 
   describe("from-build-config", () => {
@@ -126,6 +173,19 @@ describe("testing cli", () => {
       const outputPath = pathJoin(TEST_OUTPUT, "from-build-config.pdf");
       await runDocusaurusPdf(
         ["from-build-config", "--output-file", pathResolve(outputPath)],
+        { cwd: TEST_SITE_DIR }
+      );
+      expect(await isFile(outputPath)).toBe(true);
+    });
+    test("should use puppeteer settings", async () => {
+      const outputPath = pathJoin(TEST_OUTPUT, "from-build-config-a3.pdf");
+      await runDocusaurusPdf(
+        [
+          "from-build-config",
+          "--output-file",
+          pathResolve(outputPath),
+          ...PUPPETEER_SETTINGS,
+        ],
         { cwd: TEST_SITE_DIR }
       );
       expect(await isFile(outputPath)).toBe(true);

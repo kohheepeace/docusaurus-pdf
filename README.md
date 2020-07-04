@@ -55,6 +55,8 @@ npx docusaurus-pdf from-build-config
 - Mandatory: `dirPath` which points to the build directory created with `docusaurus build`.
 - Mandatory: `firstDocPagePath` is the URL path segment (without `baseUrl`) of your first docs page you whish to have included in the PDF.
 - Optional: If you have a `baseUrl` configured in your `docusaurus.config.js` then pass this value as `baseUrl`.
+- Optional: You can specify larger/smaller margins, e.g. `--margin "1cm 1.5cm 1cm 2cm"` (order top right bottom left, like the css margin field).
+- Optional: You can change the size of the paper by using `--format`, e.g. `--format A3`
 - Note: There is a optional parameter to set a custom filename. You can see further details using `npx docusaurus-pdf from-build --help`.
 
 ## Docker usage
