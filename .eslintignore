@@ -1,0 +1,5 @@
+# built by typescript
+/lib/*
+# test website
+/tests/test-website/*
+
