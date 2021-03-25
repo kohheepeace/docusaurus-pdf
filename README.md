@@ -57,6 +57,10 @@ npx docusaurus-pdf from-build-config
 - Optional: If you have a `baseUrl` configured in your `docusaurus.config.js` then pass this value as `baseUrl`.
 - Note: There is a optional parameter to set a custom filename. You can see further details using `npx docusaurus-pdf from-build --help`.
 
+### Table of Contents
+A table of contents will be generated wherever you place a `<toc>` tag. The items in the table of contents will be indented according to their header size.
+The header will have class `toc-header`, the ul element will have class `toc-list`, and the individual li elements will have class `toc-item`.
+
 ## Docker usage
 All dependencies needed to create a PDF from your docusaurus site are bundled in our Dockerfile.
 
