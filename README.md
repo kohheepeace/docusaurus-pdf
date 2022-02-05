@@ -7,6 +7,9 @@
     <img alt="Github Action: Test" src="https://github.com/KohheePeace/docusaurus-pdf/workflows/Test/badge.svg"></a>
 </p>
 
+## ⚠️ Caution!
+Currently, this package is not catching up with docusaurus v2 and not actively developed, it is under MIT license, so feel free to fork and modify it.
+
 ## Introduction
 
 This is a PDF generator from docusaurus document.
