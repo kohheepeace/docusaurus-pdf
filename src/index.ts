@@ -2,25 +2,11 @@ import chalk = require("chalk");
 import puppeteer = require("puppeteer");
 import express = require("express");
 import { AddressInfo } from "net";
-import { PDFDocument } from "pdf-lib";
 
 import * as fs from "fs";
 import * as path from "path";
 
-const generatedPdfBuffers: Array<Buffer> = [];
-
-async function mergePdfBuffers(pdfBuffers: Array<Buffer>) {
-  const outDoc = await PDFDocument.create();
-  for (const pdfBuffer of pdfBuffers) {
-    const docToAdd = await PDFDocument.load(pdfBuffer);
-    const pages = await outDoc.copyPages(docToAdd, docToAdd.getPageIndices());
-    for (const page of pages) {
-      outDoc.addPage(page);
-    }
-  }
-
-  return outDoc.save();
-}
+const htmlList: Array<string> = [];
 
 const getURL = (origin: string, filePath: string) => {
   return origin + "/" + filePath.substring(filePath.startsWith("/") ? 1 : 0);
@@ -112,10 +98,12 @@ export async function generatePdf(
   let scriptPath = "";
 
   let nextPageUrl = initialDocsUrl;
+  const headers: Array<{ header: string; level: number; id: string }> = [];
+  let tocLocation = null;
 
   while (nextPageUrl) {
     console.log();
-    console.log(chalk.cyan(`Generating PDF of ${nextPageUrl}`));
+    console.log(chalk.cyan(`Retrieving html from ${nextPageUrl}`));
     console.log();
 
     await page
@@ -126,8 +114,8 @@ export async function generatePdf(
           throw new Error(
             `Page could not be loaded! Did not get any HTML for ${nextPageUrl}`
           );
-        stylePath = getStylesheetPathFromHTML(html, origin);
-        scriptPath = getScriptPathFromHTML(html, origin);
+        if (!stylePath) stylePath = getStylesheetPathFromHTML(html, origin);
+        if (!scriptPath) scriptPath = getScriptPathFromHTML(html, origin);
       });
 
     try {
@@ -141,28 +129,79 @@ export async function generatePdf(
       nextPageUrl = "";
     }
 
-    const html = await page.$eval("article", (element) => {
+    let html = await page.$eval("article", (element) => {
       return element.outerHTML;
     });
 
-    await page.setContent(html);
-    await page.addStyleTag({ url: stylePath });
-    await page.addScriptTag({ url: scriptPath });
-    const pdfBuffer = await page.pdf({
-      path: "",
-      format: "A4",
-      printBackground: true,
-      margin: { top: 25, right: 35, left: 35, bottom: 25 },
-    });
+    const tocMatch = html.match(/(<toc><\/toc>)|(<toc\/>)/);
 
-    generatedPdfBuffers.push(pdfBuffer);
+    if (tocMatch && tocLocation == null) {
+      htmlList.push(html.slice(0, tocMatch.index));
+      tocLocation = htmlList.length;
+      html = html.slice(tocMatch.index);
+    }
 
+    if (tocLocation !== null) {
+      // parse headers in html for table of contents
+      html = html.replace(/<h[1-6](.+?)<\/h[1-6]( )*>/g, (str) => {
+        // docusaurus inserts #s into headers for direct links to the header
+        const headerText = str
+          .replace(/<a[^>]*>#<\/a( )*>/g, "")
+          .replace(/<[^>]*>/g, "")
+          .trim();
+        const headerId = `${Math.random().toString(36).substr(2, 5)}-${
+          headers.length
+        }`;
+        headers.push({
+          header: headerText,
+          level: Number(str[str.indexOf("h") + 1]),
+          id: headerId,
+        });
+
+        const text = str.replace(/<h[1-6].*?>/g, (header) => {
+          if (header.match(/id( )*=( )*"/g)) {
+            return header.replace(/id( )*=( )*"/g, `id="${headerId} `);
+          } else {
+            return (
+              header.substring(0, header.length - 1) + ` id="${headerId}">`
+            );
+          }
+        });
+        return text;
+      });
+    }
+
+    htmlList.push(html);
     console.log(chalk.green("Success"));
   }
-  await browser.close();
 
-  const mergedPdfBuffer = await mergePdfBuffers(generatedPdfBuffers);
-  fs.writeFileSync(`${filename}`, mergedPdfBuffer);
+  if (tocLocation !== null) {
+    const toc = headers
+      .map(
+        (header) =>
+          `<li class="toc-item" style="margin-left:${
+            (header.level - 1) * 20
+          }px"><a href="#${header.id}">${header.header}</a></li>`
+      )
+      .join("\n");
+    htmlList.splice(
+      tocLocation,
+      0,
+      `<h2 class="toc-header">Table of contents:</h2><ul class="toc-list">${toc}</ul>`
+    );
+  }
+
+  await page.setContent(htmlList.join("\n"));
+  await page.addStyleTag({ url: stylePath });
+  await page.addScriptTag({ url: scriptPath });
+  await page.pdf({
+    path: filename,
+    format: "A4",
+    printBackground: true,
+    margin: { top: 25, right: 35, left: 35, bottom: 25 },
+  });
+
+  await browser.close();
 }
 
 interface LoadedConfig {
