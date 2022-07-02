@@ -9,6 +9,11 @@ import * as path from "path";
 
 const generatedPdfBuffers: Array<Buffer> = [];
 
+interface GeneratePdfOptions {
+  puppeteerArgs: Array<string>;
+  puppeteerPdfOpts: puppeteer.PDFOptions;
+}
+
 async function mergePdfBuffers(pdfBuffers: Array<Buffer>) {
   const outDoc = await PDFDocument.create();
   for (const pdfBuffer of pdfBuffers) {
@@ -100,9 +105,11 @@ export function getPathSegment(path: string, endSlash = true): string {
 export async function generatePdf(
   initialDocsUrl: string,
   filename = "docusaurus.pdf",
-  puppeteerArgs: Array<string>
-): Promise<void> {
-  const browser = await puppeteer.launch({ args: puppeteerArgs });
+  generatePdfOptions: GeneratePdfOptions
+): Promise<Buffer> {
+  const browser = await puppeteer.launch({
+    args: generatePdfOptions.puppeteerArgs,
+  });
   const page = await browser.newPage();
 
   const url = new URL(initialDocsUrl);
@@ -150,9 +157,7 @@ export async function generatePdf(
     await page.addScriptTag({ url: scriptPath });
     const pdfBuffer = await page.pdf({
       path: "",
-      format: "A4",
-      printBackground: true,
-      margin: { top: 25, right: 35, left: 35, bottom: 25 },
+      ...generatePdfOptions.puppeteerPdfOpts,
     });
 
     generatedPdfBuffers.push(pdfBuffer);
@@ -162,7 +167,11 @@ export async function generatePdf(
   await browser.close();
 
   const mergedPdfBuffer = await mergePdfBuffers(generatedPdfBuffers);
-  fs.writeFileSync(`${filename}`, mergedPdfBuffer);
+
+  if (filename) {
+    await fs.promises.writeFile(`${filename}`, mergedPdfBuffer);
+  }
+  return Buffer.from(mergedPdfBuffer);
 }
 
 interface LoadedConfig {
@@ -219,7 +228,7 @@ export async function generatePdfFromBuildWithConfig(
   siteDir: string,
   buildDirPath: string,
   filename: string,
-  puppeteerArgs: Array<string>
+  generatePdfOptions: GeneratePdfOptions
 ): Promise<void> {
   const { firstDocPath, baseUrl } = await loadConfig(siteDir);
   await generatePdfFromBuildSources(
@@ -227,7 +236,7 @@ export async function generatePdfFromBuildWithConfig(
     firstDocPath,
     baseUrl,
     filename,
-    puppeteerArgs
+    generatePdfOptions
   );
 }
 
@@ -236,7 +245,7 @@ export async function generatePdfFromBuildSources(
   firstDocPath: string,
   baseUrl: string,
   filename: string,
-  puppeteerArgs: Array<string>
+  generatePdfOptions: GeneratePdfOptions
 ): Promise<void> {
   const app = express();
 
@@ -269,7 +278,7 @@ export async function generatePdfFromBuildSources(
     await generatePdf(
       `http://127.0.0.1:${address.port}${baseUrl}${firstDocPath}`,
       filename,
-      puppeteerArgs
+      generatePdfOptions
     );
   } finally {
     httpServer.close();
